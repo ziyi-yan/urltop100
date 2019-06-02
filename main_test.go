@@ -63,6 +63,22 @@ func Test_partition(t *testing.T) {
 	}
 }
 
+func Test_top100URL_1mb(t *testing.T) {
+	dir := os.TempDir()
+	outfile := top100URL(dir, "testdata/1mb/input", 100*kiloByte)
+	content, err := ioutil.ReadFile(outfile)
+	if err != nil {
+		panic(err)
+	}
+	result, err := ioutil.ReadFile("testdata/1mb/result")
+	if err != nil {
+		panic(err)
+	}
+	if !reflect.DeepEqual(content, result) {
+		t.Errorf("got %+v, but expect %+v", content, result)
+	}
+}
+
 func BenchmarkURLTop100(b *testing.B) {
 	// b.ResetTimer()
 	for i := 0; i < b.N; i++ {
