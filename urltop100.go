@@ -10,7 +10,7 @@ import (
 
 func URLCountMap(_ string, contents string) []KeyValue {
 	lines := strings.Split(string(contents), "\n")
-	m := make(map[string]int)
+	m := poolGet()
 	for _, l := range lines {
 		l = strings.TrimSpace(l)
 		if len(l) == 0 {
@@ -22,6 +22,7 @@ func URLCountMap(_ string, contents string) []KeyValue {
 	for url, count := range m {
 		kvs = append(kvs, KeyValue{Key: url, Value: strconv.Itoa(count)})
 	}
+	poolPut(m)
 	return kvs
 }
 
