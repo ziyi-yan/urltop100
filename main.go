@@ -21,6 +21,9 @@ func top100URL(dataDir, input string, maxMem int) string {
 
 	inputSize := fileSize(input)
 	nTask := inputSize * mr.NWorkers() / maxMem
+	if nTask == 0 {
+		nTask = 1
+	}
 	inputFiles := partition(dataDir, input, nTask)
 
 	countFiles := <-mr.Submit("Count", dataDir, URLCountMap, URLCountReduce, inputFiles, nTask)
@@ -76,6 +79,7 @@ func partition(dataDir string, input string, n int) []string {
 		if err != nil {
 			log.Fatalf("cannot write to file %s: %v", name, err)
 		}
+		partFiles = append(partFiles, name)
 	}
 
 	return partFiles
