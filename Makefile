@@ -13,4 +13,4 @@ build_docker:
 test_limit: build_docker
 	docker run -v ${HOME}/misc/urltop100:/testdata \
 				--memory=100m \
-				-it urltop100 /bin/bash
+				-it urltop100
