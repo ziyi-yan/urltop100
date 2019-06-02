@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -76,13 +75,5 @@ func Test_top100URL_1mb(t *testing.T) {
 	}
 	if !reflect.DeepEqual(content, result) {
 		t.Errorf("got %+v, but expect %+v", content, result)
-	}
-}
-
-func BenchmarkURLTop100(b *testing.B) {
-	// b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		outfile := top100URL("/Users/ziyi/misc/urltop100", "/Users/ziyi/misc/urltop100/infile.txt", 100*megaByte)
-		fmt.Printf("outfile: %s\n", outfile)
 	}
 }
