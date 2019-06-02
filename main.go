@@ -3,12 +3,16 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
+	"runtime/pprof"
+	"time"
 )
 
 // top100URL returns the path to output file containing
@@ -88,7 +92,7 @@ func partition(dataDir string, input string, n int) []string {
 func fileSize(file string) int {
 	info, err := os.Stat(file)
 	if err != nil {
-		log.Fatalf("os.Stat(%s) failed: %v", file, err)
+		panic(err)
 	}
 	return int(info.Size())
 }
@@ -113,7 +117,50 @@ func mustWrite(w io.Writer, b []byte) {
 	}
 }
 
+var dataDir = flag.String("dataDir", "", "path to data directory")
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to `file`")
+var memprofile = flag.String("memprofile", "", "write memory profile to `file`")
+
 func main() {
-	outfile := top100URL("/tmp/urltop100", "/tmp/urltop100/infile-1G.txt", 10*megaByte)
+	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal("could not create CPU profile: ", err)
+		}
+		defer f.Close()
+		if err := pprof.StartCPUProfile(f); err != nil {
+			log.Fatal("could not start CPU profile: ", err)
+		}
+		defer pprof.StopCPUProfile()
+	}
+
+	// ... rest of the program ...
+	dir := *dataDir
+	input := filepath.Join(dir, "input")
+	inputSize := fileSize(input)
+	maxMem := inputSize / 100
+
+	fmt.Printf("input:\t%s\nsize:\t%d\nmaxMem:\t%d\n", input, inputSize, maxMem)
+
+	start := time.Now()
+
+	outfile := top100URL(dir, input, maxMem)
+
+	end := time.Now()
+	fmt.Printf("duration: %v\n", end.Sub(start))
 	fmt.Printf("outfile: %s\n", outfile)
+	// program end
+
+	if *memprofile != "" {
+		f, err := os.Create(*memprofile)
+		if err != nil {
+			log.Fatal("could not create memory profile: ", err)
+		}
+		defer f.Close()
+		runtime.GC() // get up-to-date statistics
+		if err := pprof.WriteHeapProfile(f); err != nil {
+			log.Fatal("could not write memory profile: ", err)
+		}
+	}
 }
